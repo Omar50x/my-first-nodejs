@@ -1,0 +1,8 @@
+For create package.json
+    npm init
+For i express
+    npm install express
+For istall mongoose
+    npm i mongoose
+
+Next video: https://www.youtube.com/watch?v=HunwnrNEVyM
