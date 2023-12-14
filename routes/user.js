@@ -1,12 +1,17 @@
 const express = require('express');
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-// Add user
-router.post('/add', (req, res) => {
+// Register
+router.post('/register', async (req, res) => {
     data = req.body;
     usr = new User(data);
+    salt = bcrypt.genSaltSync(10);
+    cryptePassword = await bcrypt.hashSync(data.password, salt);
+    usr.password = cryptePassword;
     usr.save()
         .then(
             (savedUser) => {
@@ -21,14 +26,41 @@ router.post('/add', (req, res) => {
 })
 
 // Method 2
-router.post('/second-add', async (req, res) => {
+router.post('/second-register', async (req, res) => {
     try {
         data = req.body;
         usr = new User(data);
+        salt = bcrypt.genSaltSync(10);
+        cryptePassword = await bcrypt.hashSync(data.password, salt);
+        usr.password = cryptePassword;
         savedUser = await usr.save();
         res.status(200).send(savedUser);
     } catch (error) {
         res.status(400).send(error);
+    }
+})
+
+// Login
+router.post('/login', async (req, res) => {
+    data = req.body;
+    user = await User.findOne({email: data.email});
+
+    if (!user) {
+        res.status(404).send('email or password invalid!');
+    } else {
+        validPassword = bcrypt.compareSync(data.password, user.password);
+
+        if (!validPassword) {
+            res.status(401).send('email or password invalid!');
+        } else {
+            payload = {
+                _id: user._id,
+                email: user.email,
+                firstname: user.firstname
+            }
+            token = jwt.sign(payload, '12345678');
+            res.status(200).send({myToken: token});
+        }
     }
 })
 
